@@ -1,0 +1,5 @@
+node_modules/
+assessments/
+.DS_Store
+*.log
+_combined.html

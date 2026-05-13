@@ -21,7 +21,7 @@ The `sec-ass` skill currently audits the following GCP services:
 - **Cloud SQL**: Public IP exposure, SSL/TLS enforcement, and backup configurations.
 - **Logging & Monitoring**: Audit log configurations and log sink health.
 - **Artifact Registry / GCR**: Container image scanning and access controls.
-- **Security Deep-Dives**: Custom checks for VPC Service Controls, DNSSEC, and Organization Policies.
+- **Security Deep-Dives**: Custom checks for GKE Hardening, VPC Service Controls, DNSSEC, and Organization Policies.
 
 ## Tooling Context
 You have access to the `sec-ass` skill which bridges to the existing ADK-based security tools. These tools automate Prowler execution and report generation.

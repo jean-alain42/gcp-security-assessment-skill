@@ -57,7 +57,18 @@ async function analyzeResults(projectId) {
     const conclusionsPath = path.join(assessmentDir, "ReportConclusions.md");
     
     if (!fs.existsSync(headerPath)) {
-        fs.writeFileSync(headerPath, `# Summary\nAssessment for GCP Project: ${projectId}\n\n## Methodology\nScanned using Prowler GCP and custom deep-dive modules.\n`);
+        const scopeMarkdown = `
+## Scope of Assessment
+The \`sec-ass\` skill currently audits the following GCP services:
+- **Compute Engine**: Firewall rules (ingress/egress), OS Login, 2FA, and instance metadata.
+- **IAM & Admin**: Least privilege analysis, service account key management, and administrative role assignments.
+- **Cloud Storage**: Bucket-level permissions, public access prevention (PAPA), and encryption.
+- **Cloud SQL**: Public IP exposure, SSL/TLS enforcement, and backup configurations.
+- **Logging & Monitoring**: Audit log configurations and log sink health.
+- **Artifact Registry / GCR**: Container image scanning and access controls.
+- **Security Deep-Dives**: Custom checks for VPC Service Controls, DNSSEC, and Organization Policies.
+`;
+        fs.writeFileSync(headerPath, `# Summary\nAssessment for GCP Project: ${projectId}\n\n## Methodology\nScanned using Prowler GCP and custom deep-dive modules.\n${scopeMarkdown}`);
     }
 
     // --- New Deep-Dive Section ---

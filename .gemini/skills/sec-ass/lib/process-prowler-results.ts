@@ -133,7 +133,7 @@ function getAIRecommendation(checkId: string, finding: AggregatedFinding): strin
     } else if (checkId.includes('ssl_connections')) {
       rec += resourceNames.map(name => `1. **Enforce SSL:** \`gcloud sql instances patch ${name} --require-ssl\``).join('\n');
     } else if (checkId.includes('public_ip') || checkId.includes('private_ip')) {
-      rec += resourceNames.map(name => `1. **Remove Public IP:** \`gcloud sql instances patch ${name} --no-assign-ip\``).join('\n');
+      rec += resourceNames.map(name => `1. **Secure Access:** Remove the public IP and enable private connectivity (PSA or PSC).\n   - Remove public IP: \`gcloud sql instances patch ${name} --no-assign-ip\`\n   - Enable Private IP: \`gcloud sql instances patch ${name} --network=[VPC_NETWORK]\` (Ensure Service Networking is enabled).`).join('\n');
     } else if (checkId.includes('local_infile')) {
       rec += resourceNames.map(name => `1. **Set local_infile off:** \`gcloud sql instances patch ${name} --database-flags local_infile=off\``).join('\n');
     } else if (checkId.includes('enable_pgaudit')) {
@@ -154,10 +154,17 @@ function fixCheckTitle(title: string): string {
   // We want to turn them into affirmative finding titles like "XXX is not set to Y"
   let fixed = title.replace(/^Ensure\s+/i, '');
   fixed = fixed.replace(/^Check if\s+/i, '');
+  
+  // Specific handling for Cloud SQL Public IP titles to avoid double negatives
+  if (fixed.includes('public IP address') || fixed.includes('no public IP addresses')) {
+    return "Cloud SQL database instance has a public IP address assigned";
+  }
+
   fixed = fixed.replace(/\s+is enabled$/i, ' is disabled');
   fixed = fixed.replace(/\s+is configured$/i, ' is not configured');
   fixed = fixed.replace(/\s+has no\s+/i, ' has ');
   fixed = fixed.replace(/\s+has\s+/i, ' does not have ');
+  fixed = fixed.replace(/\s+does not have\s+/i, ' has '); // Fix for cases like "does not have a public IP" -> "has a public IP"
   
   // Specific overrides for the user's report
   if (fixed.includes('RDP')) return "Firewall rule allows ingress from 0.0.0.0/0 to TCP port 3389 (RDP)";

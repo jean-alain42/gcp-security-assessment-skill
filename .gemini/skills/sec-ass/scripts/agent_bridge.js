@@ -50,9 +50,14 @@ async function analyzeResults(projectId) {
     const assessmentDir = path.resolve(`assessments/${projectId}`);
     const csvPath = path.join(assessmentDir, "prowler_results", "output.csv");
     const outPath = path.join(assessmentDir, "Report.md");
-    const headerPath = path.join(assessmentDir, "ReportHeader.md");
+    const conclusionsPath = path.join(assessmentDir, "ReportConclusions.md");
     
     fs.writeFileSync(headerPath, `# Summary\nAssessment for GCP Project: ${projectId}\n\n## Methodology\nScanned using Prowler GCP.\n`);
+    
+    // Ensure ReportConclusions.md exists to prevent PDF generation failure
+    if (!fs.existsSync(conclusionsPath)) {
+        fs.writeFileSync(conclusionsPath, "# Conclusions\n\n*[AI/Auditor: Please provide high-level conclusions and executive summary here]*\n");
+    }
 
     const processorScript = path.join(LIB_DIR, "process-prowler-results.ts");
     const templatePath = path.join(LIB_DIR, "templates/finding-template.md");

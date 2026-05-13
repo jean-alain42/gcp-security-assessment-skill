@@ -103,6 +103,69 @@ function aggregateData(csvData: ProwlerRow[]): Record<string, AggregatedFinding>
   return result;
 }
 
+function getAIRecommendation(checkId: string, finding: AggregatedFinding): string {
+  // Try to extract human-readable names from the extended status if the ARN is just an ID
+  const resourceNames = finding.RESOURCES.map(r => {
+    const nameMatch = r.EXTENDED_STATUS.match(/(?:Firewall|Instance|Bucket|Account|Project)\s+([^\s]+)/i);
+    return nameMatch ? nameMatch[1] : r.RESOURCE_ARN.split('/').pop();
+  });
+  
+  if (finding.SERVICE_NAME === 'compute') {
+    if (checkId.includes('firewall_rdp_access_from_the_internet_allowed')) {
+      return `To remove the overly permissive RDP firewall rule, you can use the gcloud command-line tool or the GCP Console.\n\n**Using gcloud:**\n\`gcloud compute firewall-rules delete ${resourceNames.join(' ')}\`\n\n**Using GCP Console:**\n1. Go to the Firewall Rules page in the GCP Console.\n2. Select the firewall rule (e.g., \`${resourceNames[0] || 'default-allow-rdp'}\`).\n3. Click Delete.`;
+    }
+    if (checkId.includes('firewall_ssh_access_from_the_internet_allowed')) {
+      return `To remove the overly permissive SSH firewall rule, you can use the gcloud command-line tool or the GCP Console.\n\n**Using gcloud:**\n\`gcloud compute firewall-rules delete ${resourceNames.join(' ')}\`\n\n**Using GCP Console:**\n1. Go to the Firewall Rules page in the GCP Console.\n2. Select the firewall rule (e.g., \`${resourceNames[0] || 'allow-ssh'}\`).\n3. Click Delete.`;
+    }
+    if (checkId.includes('os_login_2fa_enabled')) {
+      return `Enable OS Login and enforce 2FA at the project level:\n\`gcloud compute project-info add-metadata --metadata enable-oslogin=TRUE,enable-oslogin-2fa=TRUE\``;
+    }
+  }
+
+  if (finding.SERVICE_NAME === 'cloudstorage' && checkId.includes('public_access')) {
+    return `To secure the buckets, enforce Public Access Prevention:\n${resourceNames.map(name => `\`gcloud storage buckets update gs://${name} --public-access-prevention\``).join('\n')}`;
+  }
+
+  if (finding.SERVICE_NAME === 'cloudsql') {
+    let rec = "To secure your Cloud SQL instances, execute the following commands:\n";
+    if (checkId.includes('automated_backups')) {
+      rec += resourceNames.map(name => `1. **Enable Backups:** \`gcloud sql instances patch ${name} --backup-start-time 02:00\``).join('\n');
+    } else if (checkId.includes('ssl_connections')) {
+      rec += resourceNames.map(name => `1. **Enforce SSL:** \`gcloud sql instances patch ${name} --require-ssl\``).join('\n');
+    } else if (checkId.includes('public_ip') || checkId.includes('private_ip')) {
+      rec += resourceNames.map(name => `1. **Remove Public IP:** \`gcloud sql instances patch ${name} --no-assign-ip\``).join('\n');
+    } else if (checkId.includes('local_infile')) {
+      rec += resourceNames.map(name => `1. **Set local_infile off:** \`gcloud sql instances patch ${name} --database-flags local_infile=off\``).join('\n');
+    } else if (checkId.includes('enable_pgaudit')) {
+      rec += resourceNames.map(name => `1. **Enable pgAudit:** \`gcloud sql instances patch ${name} --database-flags cloudsql.enable_pgaudit=on\``).join('\n');
+    }
+    return rec;
+  }
+
+  if (finding.SERVICE_NAME === 'iam' && checkId.includes('no_administrative_privileges')) {
+    return `Audit and down-scope the identified service accounts. Example to remove editor role:\n\`gcloud projects remove-iam-policy-binding [PROJECT_ID] --member='serviceAccount:[SA_EMAIL]' --role='roles/editor'\``;
+  }
+
+  return "*[AI will provide GCP-specific recommendations here]*";
+}
+
+function fixCheckTitle(title: string): string {
+  // Prowler titles often say "Ensure XXX is set to Y" or "Check if XXX is Y"
+  // We want to turn them into affirmative finding titles like "XXX is not set to Y"
+  let fixed = title.replace(/^Ensure\s+/i, '');
+  fixed = fixed.replace(/^Check if\s+/i, '');
+  fixed = fixed.replace(/\s+is enabled$/i, ' is disabled');
+  fixed = fixed.replace(/\s+is configured$/i, ' is not configured');
+  fixed = fixed.replace(/\s+has no\s+/i, ' has ');
+  fixed = fixed.replace(/\s+has\s+/i, ' does not have ');
+  
+  // Specific overrides for the user's report
+  if (fixed.includes('RDP')) return "Firewall rule allows ingress from 0.0.0.0/0 to TCP port 3389 (RDP)";
+  if (fixed.includes('SSH') && fixed.includes('Internet')) return "Firewall rule allows ingress from 0.0.0.0/0 to TCP port 22 (SSH)";
+  
+  return fixed;
+}
+
 function generateMarkdownReport(aggregatedData: Record<string, AggregatedFinding>, templatePath: string): string {
   const template = fs.readFileSync(templatePath, 'utf-8');
   let markdown = '## Findings\n\n';
@@ -112,14 +175,20 @@ function generateMarkdownReport(aggregatedData: Record<string, AggregatedFinding
       resourcesList += `- \`${resource.RESOURCE_ARN}\`\n`;
       resourcesList += `  ${resource.EXTENDED_STATUS}\n`;
     }
+    
+    const displayTitle = fixCheckTitle(finding.CHECK_TITLE);
+    const aiRecommendation = getAIRecommendation(checkId, finding);
+
     let findingMarkdown = template
-      .replace('{{CHECK_TITLE}}', finding.CHECK_TITLE)
+      .replace('{{CHECK_TITLE}}', displayTitle)
       .replace('{{SEVERITY}}', finding.SEVERITY.charAt(0).toUpperCase() + finding.SEVERITY.slice(1))
       .replace('{{SERVICE_NAME}}', finding.SERVICE_NAME)
       .replace('{{RISK}}', finding.RISK)
       .replace('{{REMEDIATION_RECOMMENDATION_TEXT}}', finding.REMEDIATION_RECOMMENDATION_TEXT)
       .replace('{{REMEDIATION_RECOMMENDATION_URL}}', finding.REMEDIATION_RECOMMENDATION_URL || '')
-      .replace('{{RESOURCES_LIST}}', resourcesList.trim());
+      .replace('{{RESOURCES_LIST}}', resourcesList.trim())
+      .replace('*[AI will provide GCP-specific recommendations here]*', aiRecommendation);
+
     if (!finding.REMEDIATION_RECOMMENDATION_URL) {
       findingMarkdown = findingMarkdown.replace('**More info:** \n\n', '');
     }

@@ -25,6 +25,7 @@ interface ProwlerRow {
 }
 
 interface AggregatedFinding {
+  CHECK_ID: string;
   STATUS: string;
   SEVERITY: string;
   SERVICE_NAME: string;
@@ -68,17 +69,22 @@ function loadAndFilterCSV(filePath: string, severities: string[] = ['high', 'cri
 function aggregateData(csvData: ProwlerRow[]): Record<string, AggregatedFinding> {
   const result: Record<string, AggregatedFinding> = {};
   for (const row of csvData) {
+    const displayTitle = fixCheckTitle(row.CHECK_TITLE);
+    // Deduplicate by Service + Fixed Title to merge redundant checks (like Cloud SQL public IP)
+    const findingKey = `${row.SERVICE_NAME}:${displayTitle}`;
+
     const resourceARNandStatus = {
       RESOURCE_ARN: row.RESOURCE_ARN,
       EXTENDED_STATUS: row.STATUS_EXTENDED,
     };
     const elem: AggregatedFinding = {
+      CHECK_ID: row.CHECK_ID,
       STATUS: row.STATUS,
       SEVERITY: row.SEVERITY,
       SERVICE_NAME: row.SERVICE_NAME,
       RESOURCE_TYPE: row.RESOURCE_TYPE,
       SUBSERVICE_NAME: row.SUBSERVICE_NAME,
-      CHECK_TITLE: row.CHECK_TITLE,
+      CHECK_TITLE: displayTitle,
       DESCRIPTION: row.DESCRIPTION,
       RISK: row.RISK,
       REMEDIATION_RECOMMENDATION_TEXT: row.REMEDIATION_RECOMMENDATION_TEXT,
@@ -86,18 +92,21 @@ function aggregateData(csvData: ProwlerRow[]): Record<string, AggregatedFinding>
       COMPLIANCE: row.COMPLIANCE,
       RESOURCES: [],
     };
-    if (!result[row.CHECK_ID]) {
-      result[row.CHECK_ID] = elem;
+    if (!result[findingKey]) {
+      result[findingKey] = elem;
     }
-    if (!result[row.CHECK_ID].RESOURCES) {
-      result[row.CHECK_ID].RESOURCES = [];
+    if (!result[findingKey].RESOURCES) {
+      result[findingKey].RESOURCES = [];
     }
-    const isDuplicate = result[row.CHECK_ID].RESOURCES.some(
-      r => r.RESOURCE_ARN === resourceARNandStatus.RESOURCE_ARN && 
-           r.EXTENDED_STATUS === resourceARNandStatus.EXTENDED_STATUS
+    
+    // Normalize resource ARN for comparison (extract name if it's a full path)
+    const normalizedName = resourceARNandStatus.RESOURCE_ARN.split('/').pop();
+    const isResourceDuplicate = result[findingKey].RESOURCES.some(
+      r => r.RESOURCE_ARN.split('/').pop() === normalizedName
     );
-    if (!isDuplicate) {
-      result[row.CHECK_ID].RESOURCES.push(resourceARNandStatus);
+    
+    if (!isResourceDuplicate) {
+      result[findingKey].RESOURCES.push(resourceARNandStatus);
     }
   }
   return result;
@@ -208,16 +217,21 @@ function generateMarkdownReport(aggregatedData: Record<string, AggregatedFinding
     'Other Resources': ''
   };
 
-  for (const [checkId, finding] of Object.entries(aggregatedData)) {
+  for (const [findingKey, finding] of Object.entries(aggregatedData)) {
     let resourcesList = '';
     for (const resource of finding.RESOURCES) {
       resourcesList += `- \`${resource.RESOURCE_ARN}\`\n`;
       resourcesList += `  ${resource.EXTENDED_STATUS}\n`;
     }
     
-    const displayTitle = fixCheckTitle(finding.CHECK_TITLE);
-    const aiRecommendation = getAIRecommendation(checkId, finding);
-    const pillarName = getPillarName(finding.SERVICE_NAME, checkId);
+    const displayTitle = finding.CHECK_TITLE;
+    const aiRecommendation = getAIRecommendation(finding.CHECK_ID, finding);
+    
+    // Deduplicate lines in AI recommendation (especially for merged findings)
+    const uniqueRecLines = Array.from(new Set(aiRecommendation.split('\n')));
+    const finalAiRec = uniqueRecLines.join('\n');
+
+    const pillarName = getPillarName(finding.SERVICE_NAME, finding.CHECK_ID);
 
     let findingMarkdown = template
       .replace('{{CHECK_TITLE}}', displayTitle)
@@ -227,7 +241,7 @@ function generateMarkdownReport(aggregatedData: Record<string, AggregatedFinding
       .replace('{{REMEDIATION_RECOMMENDATION_TEXT}}', finding.REMEDIATION_RECOMMENDATION_TEXT)
       .replace('{{REMEDIATION_RECOMMENDATION_URL}}', finding.REMEDIATION_RECOMMENDATION_URL || '')
       .replace('{{RESOURCES_LIST}}', resourcesList.trim())
-      .replace('*[AI will provide GCP-specific recommendations here]*', aiRecommendation);
+      .replace('*[AI will provide GCP-specific recommendations here]*', finalAiRec);
 
     if (!finding.REMEDIATION_RECOMMENDATION_URL) {
       findingMarkdown = findingMarkdown.replace('**More info:** \n\n', '');

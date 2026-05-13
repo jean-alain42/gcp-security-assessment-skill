@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SESSION_FILE="$ASSESSMENT_DIR/.session.json"
 HEADER_FILE="$ASSESSMENT_DIR/ReportHeader.md"
 REPORT_FILE="$ASSESSMENT_DIR/Report.md"
+DEEPDIVE_FILE="$ASSESSMENT_DIR/DeepDive.md"
 CONCLUSIONS_FILE="$ASSESSMENT_DIR/ReportConclusions.md"
 
 # Validate required files
@@ -40,6 +41,13 @@ HEADER_HTML=$(pandoc "$HEADER_FILE" --syntax-highlighting=none)
 REPORT_HTML=$(pandoc "$REPORT_FILE" --syntax-highlighting=none)
 CONCLUSIONS_HTML=$(pandoc "$CONCLUSIONS_FILE" --syntax-highlighting=none)
 
+# Deep-dive is optional but we include if exists
+if [ -f "$DEEPDIVE_FILE" ]; then
+  DEEPDIVE_HTML=$(pandoc "$DEEPDIVE_FILE" --syntax-highlighting=none)
+else
+  DEEPDIVE_HTML=""
+fi
+
 # Combine into final HTML
 COMBINED="$ASSESSMENT_DIR/_combined.html"
 cat > "$COMBINED" << EOF
@@ -55,6 +63,7 @@ $(echo "$COVER_HTML" | sed -n '/<div class="cover-page"/,/<\/div>/p')
 $HEADER_HTML
 </div>
 $REPORT_HTML
+$DEEPDIVE_HTML
 $CONCLUSIONS_HTML
 </body>
 </html>

@@ -166,9 +166,41 @@ function fixCheckTitle(title: string): string {
   return fixed;
 }
 
+const PILLAR_MAPPING: Record<string, string> = {
+  'apikeys': 'IAM Security',
+  'artifacts': 'Data Security',
+  'cloudsql': 'Data Security',
+  'cloudstorage': 'Data Security',
+  'compute': 'VM Security',
+  'gcr': 'GKE Security',
+  'iam': 'IAM Security',
+  'logging': 'Security Operations',
+  'monitoring': 'Security Operations',
+  'dns': 'Network Security',
+  'vpc': 'Network Security',
+  'firewall': 'Network Security',
+};
+
+function getPillarName(serviceName: string, checkId: string): string {
+  if (checkId.includes('firewall') || checkId.includes('vpc') || checkId.includes('dns')) return 'Network Security';
+  if (checkId.includes('gke') || checkId.includes('kubernetes')) return 'GKE Security';
+  return PILLAR_MAPPING[serviceName.toLowerCase()] || 'Other Resources';
+}
+
 function generateMarkdownReport(aggregatedData: Record<string, AggregatedFinding>, templatePath: string): string {
   const template = fs.readFileSync(templatePath, 'utf-8');
-  let markdown = '## Findings\n\n';
+  const pillars: Record<string, string> = {
+    'Resource Management': '',
+    'VM Security': '',
+    'Network Security': '',
+    'IAM Security': '',
+    'GKE Security': '',
+    'K8s Security': '',
+    'Data Security': '',
+    'Security Operations': '',
+    'Other Resources': ''
+  };
+
   for (const [checkId, finding] of Object.entries(aggregatedData)) {
     let resourcesList = '';
     for (const resource of finding.RESOURCES) {
@@ -178,6 +210,7 @@ function generateMarkdownReport(aggregatedData: Record<string, AggregatedFinding
     
     const displayTitle = fixCheckTitle(finding.CHECK_TITLE);
     const aiRecommendation = getAIRecommendation(checkId, finding);
+    const pillarName = getPillarName(finding.SERVICE_NAME, checkId);
 
     let findingMarkdown = template
       .replace('{{CHECK_TITLE}}', displayTitle)
@@ -192,9 +225,17 @@ function generateMarkdownReport(aggregatedData: Record<string, AggregatedFinding
     if (!finding.REMEDIATION_RECOMMENDATION_URL) {
       findingMarkdown = findingMarkdown.replace('**More info:** \n\n', '');
     }
-    markdown += findingMarkdown + '\n';
+    
+    pillars[pillarName] += findingMarkdown + '\n';
   }
-  return markdown;
+
+  let finalMarkdown = '## Findings by Security Pillar\n\n';
+  for (const [pillar, content] of Object.entries(pillars)) {
+    if (content.trim()) {
+      finalMarkdown += `## ${pillar}\n\n${content}\n---\n\n`;
+    }
+  }
+  return finalMarkdown;
 }
 
 function main() {

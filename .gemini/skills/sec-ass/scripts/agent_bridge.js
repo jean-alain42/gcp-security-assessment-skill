@@ -46,6 +46,8 @@ async function runProwler(projectId) {
     return { status: "Success", message: "Prowler scan completed." };
 }
 
+import { auditOrgPolicies, auditIAMRecommender } from "../lib/deep-dive-checks.ts";
+
 async function analyzeResults(projectId) {
     const assessmentDir = path.resolve(`assessments/${projectId}`);
     const csvPath = path.join(assessmentDir, "prowler_results", "output.csv");
@@ -56,6 +58,15 @@ async function analyzeResults(projectId) {
     if (!fs.existsSync(headerPath)) {
         fs.writeFileSync(headerPath, `# Summary\nAssessment for GCP Project: ${projectId}\n\n## Methodology\nScanned using Prowler GCP.\n`);
     }
+
+    // --- New Deep-Dive Section ---
+    console.log(`[BRIDGE] Running Custom Deep-Dive Checks...`);
+    const orgPoliciesResults = auditOrgPolicies(projectId);
+    const iamRecResults = auditIAMRecommender(projectId);
+    
+    const deepDivePath = path.join(assessmentDir, "DeepDive.md");
+    fs.writeFileSync(deepDivePath, `## Deep-Dive Analysis\n\n${orgPoliciesResults}\n\n${iamRecResults}\n`);
+    // ----------------------------
     
     // Ensure ReportConclusions.md exists to prevent PDF generation failure
     if (!fs.existsSync(conclusionsPath)) {
@@ -71,7 +82,7 @@ async function analyzeResults(projectId) {
             cwd: assessmentDir,
             stdio: 'inherit' 
         });
-        return { status: "Success", reportPath: outPath, headerPath };
+        return { status: "Success", reportPath: outPath, headerPath, deepDivePath };
     } catch (e) {
         return { status: "Failed", error: e.message };
     }

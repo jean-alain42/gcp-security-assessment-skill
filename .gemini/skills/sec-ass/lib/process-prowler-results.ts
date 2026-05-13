@@ -2,7 +2,8 @@
 // @ts-nocheck
 import * as fs from 'fs';
 import * as path from 'path';
-import * as Papa from 'papaparse';
+import { fileURLToPath } from 'url';
+import Papa from 'papaparse';
 
 interface ProwlerRow {
   CHECK_ID: string;
@@ -151,7 +152,7 @@ function main() {
     console.error(`Error: File not found: ${csvFilePath}`);
     process.exit(1);
   }
-  const scriptDir = __dirname;
+  const scriptDir = path.dirname(fileURLToPath(import.meta.url));
   const templatePath = templateOverride
     ? path.resolve(templateOverride)
     : path.resolve(scriptDir, 'templates/finding-template.md');

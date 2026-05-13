@@ -19,7 +19,7 @@ This repository contains an autonomous **Gemini CLI Skill** designed for perform
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/doitintl/gcp-security-auditor-skill.git .
+   git clone https://github.com/doitintl/gcp-security-assessment-automation.git .
    ```
 
 2. **Setup Dependencies**:

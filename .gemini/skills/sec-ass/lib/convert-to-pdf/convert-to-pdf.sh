@@ -11,6 +11,7 @@ SESSION_FILE="$ASSESSMENT_DIR/.session.json"
 HEADER_FILE="$ASSESSMENT_DIR/ReportHeader.md"
 REPORT_FILE="$ASSESSMENT_DIR/Report.md"
 DEEPDIVE_FILE="$ASSESSMENT_DIR/DeepDive.md"
+METHODOLOGY_FILE="$ASSESSMENT_DIR/ReportMethodology.md"
 CONCLUSIONS_FILE="$ASSESSMENT_DIR/ReportConclusions.md"
 
 # Validate required files
@@ -48,6 +49,13 @@ else
   DEEPDIVE_HTML=""
 fi
 
+# Methodology is optional but we include if exists
+if [ -f "$METHODOLOGY_FILE" ]; then
+  METHODOLOGY_HTML=$(pandoc "$METHODOLOGY_FILE" --syntax-highlighting=none)
+else
+  METHODOLOGY_HTML=""
+fi
+
 # Combine into final HTML
 COMBINED="$ASSESSMENT_DIR/_combined.html"
 cat > "$COMBINED" << EOF
@@ -65,6 +73,9 @@ $HEADER_HTML
 $REPORT_HTML
 $DEEPDIVE_HTML
 $CONCLUSIONS_HTML
+<div class="methodology-annex">
+$METHODOLOGY_HTML
+</div>
 </body>
 </html>
 EOF

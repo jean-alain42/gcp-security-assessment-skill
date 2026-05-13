@@ -46,28 +46,41 @@ async function runProwler(projectId) {
     return { status: "Success", message: "Prowler scan completed." };
 }
 
-import { auditOrgPolicies, auditIAMRecommender } from "../lib/deep-dive-checks.ts";
+import { auditOrgPolicies, auditIAMRecommender, auditNetworkTopology, auditGKEHardening } from "../lib/deep-dive-checks.ts";
 
 async function analyzeResults(projectId) {
     const assessmentDir = path.resolve(`assessments/${projectId}`);
     const csvPath = path.join(assessmentDir, "prowler_results", "output.csv");
     const outPath = path.join(assessmentDir, "Report.md");
     const headerPath = path.join(assessmentDir, "ReportHeader.md");
+    const methodologyPath = path.join(assessmentDir, "ReportMethodology.md");
     const conclusionsPath = path.join(assessmentDir, "ReportConclusions.md");
     
     if (!fs.existsSync(headerPath)) {
-        fs.writeFileSync(headerPath, `# Summary\nAssessment for GCP Project: ${projectId}\n\n## Methodology\nScanned using Prowler GCP.\n`);
+        fs.writeFileSync(headerPath, `# Summary\nAssessment for GCP Project: ${projectId}\n\n## Methodology\nScanned using Prowler GCP and custom deep-dive modules.\n`);
     }
 
     // --- New Deep-Dive Section ---
     console.log(`[BRIDGE] Running Custom Deep-Dive Checks...`);
     const orgPoliciesResults = auditOrgPolicies(projectId);
+    const networkResults = auditNetworkTopology(projectId);
     const iamRecResults = auditIAMRecommender(projectId);
+    const gkeResults = auditGKEHardening(projectId);
     
     const deepDivePath = path.join(assessmentDir, "DeepDive.md");
-    fs.writeFileSync(deepDivePath, `## Deep-Dive Analysis\n\n${orgPoliciesResults}\n\n${iamRecResults}\n`);
+    fs.writeFileSync(deepDivePath, `## Deep-Dive Analysis\n\n${orgPoliciesResults}\n\n${networkResults}\n\n${iamRecResults}\n\n${gkeResults}\n`);
     // ----------------------------
     
+    // --- Annex: Methodology ---
+    const methodology = `## Annex: Scans Performed\n\nThis security assessment involved the following scanning modules:\n\n` +
+                        `1. **Prowler GCP Scan:** Comprehensive audit of 100+ security controls across all active services.\n` +
+                        `2. **Deep-Dive: Organization Policies:** Audit of project-level guardrails and constraints.\n` +
+                        `3. **Deep-Dive: Network Topology:** Audit of VPC Service Controls (VPC-SC) and Cloud DNSSEC.\n` +
+                        `4. **Deep-Dive: IAM Least Privilege:** Analysis of over-privileged service accounts via Recommender API.\n` +
+                        `5. **Deep-Dive: GKE Hardening:** Security configuration review of Kubernetes clusters (Workload Identity, Binary Auth).\n`;
+    fs.writeFileSync(methodologyPath, methodology);
+    // -------------------------
+
     // Ensure ReportConclusions.md exists to prevent PDF generation failure
     if (!fs.existsSync(conclusionsPath)) {
         fs.writeFileSync(conclusionsPath, "# Conclusions\n\n*[AI/Auditor: Please provide high-level conclusions and executive summary here]*\n");
@@ -82,7 +95,7 @@ async function analyzeResults(projectId) {
             cwd: assessmentDir,
             stdio: 'inherit' 
         });
-        return { status: "Success", reportPath: outPath, headerPath, deepDivePath };
+        return { status: "Success", reportPath: outPath, headerPath, deepDivePath, methodologyPath };
     } catch (e) {
         return { status: "Failed", error: e.message };
     }

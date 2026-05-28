@@ -8,7 +8,7 @@ This repository contains an autonomous **Antigravity CLI Skill** designed for pe
 - **Actionable Recommendations**: Provides resource-specific `gcloud` and `gsutil` commands for remediation.
 - **Professional PDF Reports**: Converts Markdown findings into a finalized PDF document.
 - **DoiT Console Insights**: Integrates with the `dci` CLI to seamlessly publish aggregated resource-level findings as interactive security insights directly to the DoiT Console.
-- **Autonomous Structure**: Fully self-contained logic within the `.gemini/skills/` directory.
+- **Autonomous Structure**: Fully self-contained logic within the `.antigravity/skills/` directory.
 
 ## Prerequisites
 - **Antigravity CLI** (Default tool)
@@ -39,7 +39,7 @@ This repository contains an autonomous **Antigravity CLI Skill** designed for pe
 
 3. **Install Skill Packages**:
    ```bash
-   cd .gemini/skills/sec-ass/
+   cd .antigravity/skills/sec-ass/
    npm install
    cd ../../../
    ```
@@ -67,7 +67,7 @@ The agent will autonomously guide you through the 5-phase workflow:
 ### Standalone Insights Publishing
 If you have already performed a scan and only wish to publish the insights using the standalone publisher, run:
 ```bash
-npx tsx ./.gemini/skills/sec-ass-insight/scripts/post_insight.ts --projectId [YOUR_PROJECT_ID]
+npx tsx ./.antigravity/skills/sec-ass-insight/scripts/post_insight.ts --projectId [YOUR_PROJECT_ID]
 ```
 
 ## Scope of Assessment
@@ -78,8 +78,8 @@ The tool currently vets:
 - **Deep-Dives**: GKE Hardening, VPC Service Controls, DNSSEC, Org Policies.
 
 ## Project Structure
-- `.gemini/skills/sec-ass/`: The core skill logic and scripts.
-- `.gemini/skills/sec-ass-insight/`: Standalone skill for publishing security insights.
+- `.antigravity/skills/sec-ass/`: The core skill logic and scripts.
+- `.antigravity/skills/sec-ass-insight/`: Standalone skill for publishing security insights.
 - `assessments/`: (Generated) Directory where scan results, reports, and payloads are stored.
 - `ANTIGRAVITY.md`: Workspace configuration for the Security Auditor agent.
 

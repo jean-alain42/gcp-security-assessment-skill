@@ -12,5 +12,5 @@ This skill is designed to run after a security assessment is completed:
 
 ### postInsight
 Publishes the security assessment findings to the DoiT Console as an Insight and resource results.
-- **Command**: `npx tsx ./.gemini/skills/sec-ass-insight/scripts/post_insight.ts --projectId {{projectId}}`
+- **Command**: `npx tsx ./.antigravity/skills/sec-ass-insight/scripts/post_insight.ts --projectId {{projectId}}`
 - **Description**: Parses Prowler CSV results, aggregates findings, builds the JSON payloads, and calls the `dci` CLI to post both the main Insight and resource-specific security risks.

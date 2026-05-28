@@ -128,6 +128,17 @@ async function generatePDF(projectId) {
     }
 }
 
+async function postInsight(projectId) {
+    const scriptPath = path.join(__dirname, "post_insight.ts");
+    console.log(`[BRIDGE] Executing DoiT Console Insight publisher...`);
+    try {
+        execSync(`npx tsx "${scriptPath}" --projectId ${projectId}`, { stdio: 'inherit' });
+        return { status: "Success", message: "Insight published to DoiT Console successfully." };
+    } catch (e) {
+        return { status: "Failed", error: e.message };
+    }
+}
+
 async function main() {
     const { values, positionals } = parseArgs({
         options: {
@@ -159,6 +170,9 @@ async function main() {
                 break;
             case "generatePDF":
                 result = await generatePDF(projectId);
+                break;
+            case "postInsight":
+                result = await postInsight(projectId);
                 break;
             default:
                 console.error(`✖ Error: Unknown phase "${phase}"`);

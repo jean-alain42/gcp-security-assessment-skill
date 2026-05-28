@@ -1,6 +1,6 @@
 # GCP Security Assessment Skill (sec-ass)
 
-This repository contains an autonomous **Gemini CLI Skill** designed for performing security assessments on Google Cloud Platform (GCP) projects. It bridges the power of **Prowler** with Gemini's AI reasoning to provide actionable security recommendations, and publishes results directly to the DoiT Console.
+This repository contains an autonomous **Antigravity CLI Skill** designed for performing security assessments on Google Cloud Platform (GCP) projects. It bridges the power of **Prowler** with Antigravity's AI reasoning to provide actionable security recommendations, and publishes results directly to the DoiT Console.
 
 ## Features
 - **Automated Prowler Scans**: Executes security best-practice checks against any GCP Project ID.
@@ -11,7 +11,7 @@ This repository contains an autonomous **Gemini CLI Skill** designed for perform
 - **Autonomous Structure**: Fully self-contained logic within the `.gemini/skills/` directory.
 
 ## Prerequisites
-- [Gemini CLI](https://www.npmjs.com/package/@google/gemini-cli) (v1.x)
+- **Antigravity CLI** (Default tool)
 - [Prowler](https://github.com/prowler-cloud/prowler) installed and configured in your environment.
 - [DoiT CLI (dci)](https://help.doit.com/docs/cli) installed and authenticated.
 - Node.js & npm.
@@ -27,8 +27,8 @@ This repository contains an autonomous **Gemini CLI Skill** designed for perform
 2. **Setup Dependencies**:
    Ensure you have the required tools installed:
    ```bash
-   # Install Gemini CLI
-   npm install -g @google/gemini-cli
+   # Verify Antigravity CLI is ready
+   antigravity status
 
    # Install Prowler
    brew install prowler
@@ -48,9 +48,9 @@ This repository contains an autonomous **Gemini CLI Skill** designed for perform
 
 The easiest way to use this tool is via the interactive **GCP Security Auditor** agent. 
 
-1. **Start Gemini**:
+1. **Start Antigravity**:
    ```bash
-   gemini chat
+   antigravity chat
    ```
 
 2. **Trigger the Assessment**:
@@ -81,7 +81,7 @@ The tool currently vets:
 - `.gemini/skills/sec-ass/`: The core skill logic and scripts.
 - `.gemini/skills/sec-ass-insight/`: Standalone skill for publishing security insights.
 - `assessments/`: (Generated) Directory where scan results, reports, and payloads are stored.
-- `GEMINI.md`: Workspace configuration for the Security Auditor agent.
+- `ANTIGRAVITY.md`: Workspace configuration for the Security Auditor agent.
 
 ## License
 MIT

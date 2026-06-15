@@ -26,17 +26,17 @@ The assessment is divided into five main phases:
 
 ### preAssessment
 Initializes the assessment session.
-- **Command**: `npx tsx ./.gemini/skills/sec-ass/scripts/agent_bridge.js preAssessment --projectId {{projectId}}`
+- **Command**: `npx tsx ./.antigravity/skills/sec-ass/scripts/agent_bridge.js preAssessment --projectId {{projectId}}`
 - **Description**: Creates the assessment directory and initializes the session.
 
 ### runProwler
 Generates and runs the Prowler scan.
-- **Command**: `npx tsx ./.gemini/skills/sec-ass/scripts/agent_bridge.js runProwler --projectId {{projectId}}`
+- **Command**: `npx tsx ./.antigravity/skills/sec-ass/scripts/agent_bridge.js runProwler --projectId {{projectId}}`
 - **Description**: Generates a bash script and executes Prowler (this may take several minutes).
 
 ### analyzeResults
 Parses Prowler CSV output and creates Report.md.
-- **Command**: `npx tsx ./.gemini/skills/sec-ass/scripts/agent_bridge.js analyzeResults --projectId {{projectId}}`
+- **Command**: `npx tsx ./.antigravity/skills/sec-ass/scripts/agent_bridge.js analyzeResults --projectId {{projectId}}`
 - **Description**: Processes the CSV findings into a structured Markdown report.
 - **Agent Integration (GKE Remote MCP)**: Before running this command, if the target project contains GKE clusters, the AI agent should use the `gke-read-only-troubleshooter` MCP tools to query the cluster resources and cache them to avoid local shell or kubectl requirements. For each cluster:
   1. Call `get_k8s_resource` with `resourceType: "pod"` and `outputFormat: "JSON"` to retrieve pods.
@@ -55,10 +55,10 @@ Parses Prowler CSV output and creates Report.md.
 
 ### generatePDF
 Converts the reports to PDF.
-- **Command**: `npx tsx ./.gemini/skills/sec-ass/scripts/agent_bridge.js generatePDF --projectId {{projectId}}`
+- **Command**: `npx tsx ./.antigravity/skills/sec-ass/scripts/agent_bridge.js generatePDF --projectId {{projectId}}`
 - **Description**: Generates the final PDF report.
 
 ### postInsight
 Publishes the security findings as an Insight to the DoiT Console.
-- **Command**: `npx tsx ./.gemini/skills/sec-ass/scripts/agent_bridge.js postInsight --projectId {{projectId}}`
+- **Command**: `npx tsx ./.antigravity/skills/sec-ass/scripts/agent_bridge.js postInsight --projectId {{projectId}}`
 - **Description**: Aggregates vulnerable resources from Prowler and uploads findings to the DoiT Console using the `dci` CLI.

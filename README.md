@@ -5,10 +5,12 @@ This repository contains an autonomous **Antigravity CLI Skill** designed for pe
 ## Features
 - **Automated Prowler Scans**: Executes security best-practice checks against any GCP Project ID.
 - **AI-Driven Analysis**: Automatically analyzes CSV findings and generates structured reports.
+- **GKE Remote MCP Audits**: Leverages the GKE Remote MCP Server to perform real-time, zero-trust internal audits of Kubernetes Pod Security, Network Policies, and RBAC bindings without needing local `kubectl` access.
 - **Actionable Recommendations**: Provides resource-specific `gcloud` and `gsutil` commands for remediation.
 - **Professional PDF Reports**: Converts Markdown findings into a finalized PDF document.
 - **DoiT Console Insights**: Integrates with the `dci` CLI to seamlessly publish aggregated resource-level findings as interactive security insights directly to the DoiT Console.
 - **Autonomous Structure**: Fully self-contained logic within the `.antigravity/skills/` directory.
+
 
 ## Prerequisites
 - **Antigravity CLI** (Default tool)
@@ -70,7 +72,19 @@ If you have already performed a scan and only wish to publish the insights using
 npx tsx ./.antigravity/skills/sec-ass-insight/scripts/post_insight.ts --projectId [YOUR_PROJECT_ID]
 ```
 
+## 🚀 GKE Remote MCP Server Integration (New!)
+
+The skill features deep integration with the Google-managed **GKE Remote MCP Server** (`gke-read-only-troubleshooter`). This allows the **Antigravity Auditor** agent to audit and analyze cluster-internal security postures remotely without requiring local cluster connections.
+
+### Key Remote MCP Audit Capabilities:
+- **Zero-Trust Remote Querying**: Inspects clusters directly via the remote GCP control plane. No local `kubectl` configuration, Kubeconfig context setup, or VPN/bastion access is required inside the agent's execution shell.
+- **Workload & Pod Security Audits**: Real-time extraction and AI-driven analysis of active Kubernetes Pods to identify privileged containers, host namespace sharing, and insecure configurations.
+- **Lateral Isolation Verification**: Checks Kubernetes `NetworkPolicies` to ensure workloads are properly segmented and isolated, preventing lateral movement in the event of a breach.
+- **RBAC Entitlement Analysis**: Audits `ClusterRoleBindings` and role mappings to identify over-privileged identities, wildcard permissions (`*`), and privilege escalation paths.
+- **Seamless Offline Audit Mode**: Collected cluster-internal data is compiled and fed directly into the `analyzeResults` deep-dive auditing engine to generate comprehensive security insights.
+
 ## Scope of Assessment
+
 The tool currently vets:
 - **Compute Engine**: Firewalls, OS Login, 2FA.
 - **IAM**: Least privilege, Service Accounts.

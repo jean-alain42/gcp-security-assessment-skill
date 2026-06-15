@@ -13,11 +13,13 @@ This repository contains an autonomous **Antigravity CLI Skill** designed for pe
 
 
 ## Prerequisites
-- **Antigravity CLI** (Default tool)
+- **Antigravity CLI**
+- **GKE Remote MCP Server** (`gke-read-only-troubleshooter` configured in Antigravity) — *Optional, required for GKE workload, network policy, and RBAC auditing.*
 - [Prowler](https://github.com/prowler-cloud/prowler) installed and configured in your environment.
 - [DoiT CLI (dci)](https://help.doit.com/docs/cli) installed and authenticated.
 - Node.js & npm.
 - `pandoc` and `weasyprint` (for PDF generation).
+
 
 ## Installation & Setup
 

@@ -1,0 +1,12 @@
+{
+  "name": "sec-ass-skill",
+  "version": "1.0.0",
+  "description": "Autonomous GCP Security Assessment Skill",
+  "type": "module",
+  "dependencies": {
+    "papaparse": "^5.5.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
+  }
+}

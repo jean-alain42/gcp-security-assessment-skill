@@ -1,9 +1,9 @@
 ---
-name: sec-ass-composer
+name: sec-assmt-composer
 description: Translates GCP security remediations and gcloud commands into DoiT DCI Composer Recipes, and publishes them directly to the DoiT Console using the dci CLI with SSO authentication (no local server runtime required).
 ---
 
-# DoiT DCI Composer Recipe Generator (sec-ass-composer)
+# DoiT DCI Composer Recipe Generator (sec-assmt-composer)
 
 This skill translates GCP security assessment findings and `gcloud` remediation commands into **DoiT DCI Composer Recipes**, and publishes them directly to the DoiT Console as interactive Insights and security rule definitions.
 

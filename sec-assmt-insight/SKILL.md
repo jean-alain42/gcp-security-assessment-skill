@@ -1,9 +1,9 @@
 ---
-name: sec-ass-insight
-description: Publishes the results of a GCP security assessment (performed by the sec-ass skill) directly to the DoiT Console as a rich, interactive Insight with resource-level security risks using the dci CLI.
+name: sec-assmt-insight
+description: Publishes the results of a GCP security assessment (performed by the sec-assmt skill) directly to the DoiT Console as a rich, interactive Insight with resource-level security risks using the dci CLI.
 ---
 
-# DoiT Security Insight Publisher (sec-ass-insight)
+# DoiT Security Insight Publisher (sec-assmt-insight)
 
 This skill publishes the results of a GCP security assessment (performed by the `sec-ass` skill) directly to the DoiT Console as a rich, interactive **Insight** with resource-level security risks using the `dci` CLI.
 

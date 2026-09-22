@@ -1,9 +1,9 @@
 ---
-name: sec-ass
+name: sec-assmt
 description: Provides a comprehensive security assessment for Google Cloud Platform (GCP) projects. It uses Prowler for scanning, provides AI-driven analysis of findings, translates remediations into DCI Composer Recipes, and publishes results directly to the DoiT Console as Insights using SSO authentication.
 ---
 
-# GCP Security Assessment (sec-ass)
+# GCP Security Assessment (sec-assmt)
 
 This skill provides a comprehensive security assessment for Google Cloud Platform (GCP) projects. It uses Prowler for scanning, provides AI-driven analysis of findings, translates remediations into **DoiT DCI Composer Recipes**, and publishes results directly to the DoiT Console as Insights.
 
